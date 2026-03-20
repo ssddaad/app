@@ -114,13 +114,6 @@ const SERVICE_LIST: ServiceItem[] = [
     { icon: Stethoscope, name: '我的医生', desc: '管理您的医生团队', path: '/doctors', color: 'consult' },
 ];
 
-/**
- * Icon for Stethoscope
- */
-const StethoscopeIcon: React.FC<{ size: number }> = ({ size }) => (
-  <Stethoscope size={size} />
-);
-
 /** 将 SharedMessage 转为本地 Message 格式 */
 const sharedToLocal = (sm: SharedMessage): Message => ({
     id: sm.id,

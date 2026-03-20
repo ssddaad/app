@@ -55,7 +55,7 @@ const AuthButton: React.FC = () => {
   }, []);
 
   // 用户名/密码登录（email 字段承载 username 或 phone）
-  const handleLogin = async ({ email, password, role }: { email: string; password: string; role: 'patient' | 'doctor' }) => {
+  const handleLogin = async ({ email, role }: { email: string; password?: string; role: 'patient' | 'doctor' }) => {
     // ========== 【临时死代码 - 前端写死登录，无论账号密码均可通过】START ==========
     contextLogin({
       id: 'temp-user',
@@ -106,10 +106,9 @@ const AuthButton: React.FC = () => {
   };
 
   // 发送验证码（前端 'forgot' → 后端 'reset_password'）
-  const handleSendCode = async (phone: string, scene: 'login' | 'register' | 'forgot') => {
+  const handleSendCode = async (phone: string, scene: 'login' | 'register' | 'reset_password') => {
     try {
-      const backendScene = scene === 'forgot' ? 'reset_password' : scene;
-      const data = await authService.sendCode({ phone, scene: backendScene });
+      const data = await authService.sendCode({ phone, scene });
       if (data.code) {
         message.info(`开发模式 - 验证码: ${data.code}`, 8);
       }
