@@ -3,19 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>页面重定向</title>
+  <title>乳此安心</title>
   <script>
-    // GitHub Pages 404 重定向脚本
-    // 用于支持 React Router 的客户端路由
+    // GitHub Pages SPA 路由支持
+    // 将完整路径保存到 sessionStorage，然后重定向到根路径
+    // 参考：https://github.com/rafgraph/spa-github-pages
     (function() {
-      const path = decodeURI(window.location.pathname);
-      // 如果路径不是根路径且不包含文件扩展名，重定向到首页
-      if (path !== '/' && !path.match(/\.\w+$/)) {
-        // 保存原始路径到 sessionStorage
-        sessionStorage.redirect = path;
-        // 重定向到首页
-        window.location.href = '/app/';
-      }
+      var l = window.location;
+      // /app 是仓库名，pathSegmentsToKeep=1 保留仓库路径前缀
+      var segmentsToKeep = 1;
+      sessionStorage.redirect = l.pathname.slice(
+        l.pathname.split('/').slice(0, 1 + segmentsToKeep).join('/').length
+      );
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentsToKeep).join('/') + '/?p=1'
+      );
     })();
   </script>
 </head>

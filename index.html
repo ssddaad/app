@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>乳此安心</title>
     <script>
-      // GitHub Pages 路由重定向脚本
-      // 处理 React Router 的客户端路由
+      // GitHub Pages SPA 路由恢复脚本
+      // 配合 404.html 中的重定向脚本使用
       (function() {
-        const redirect = sessionStorage.redirect;
+        var redirect = sessionStorage.redirect;
         delete sessionStorage.redirect;
-        if (redirect && redirect !== window.location.pathname) {
+        if (redirect && redirect !== '/') {
           window.history.replaceState(null, null, redirect);
         }
       })();

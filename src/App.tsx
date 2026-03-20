@@ -40,7 +40,8 @@ const PageLoader: React.FC = () => (
 
 const App: React.FC = () => {
   // GitHub Pages 部署时使用 /app/ 作为 basename
-  const basename = import.meta.env.GITHUB_PAGES ? '/app' : '/';
+  // vite.config.ts 通过 define 注入 __GITHUB_PAGES__ 变量
+  const basename = import.meta.env.BASE_URL === '/app/' ? '/app' : '/';
   
   return (
     <Router basename={basename}>
