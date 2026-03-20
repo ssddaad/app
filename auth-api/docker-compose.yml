@@ -1,0 +1,215 @@
+# ============================================================
+# docker-compose.yml  —  生产部署配置
+#
+# 包含三个服务：
+#   auth-api  主应用（Node.js + Express）
+#   postgres  PostgreSQL 15 数据库
+#   redis     Redis 7 缓存
+#
+# 使用方式：
+#   1. 复制 .env.production.example 为 .env 并填写真实值
+#   2. docker compose up -d --build
+# ============================================================
+
+version: '3.8'
+
+services:
+
+  # ----------------------------------------------------------
+  # 主应用服务
+  # ----------------------------------------------------------
+  auth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: auth-api:latest
+    container_name: auth-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT:-3000}
+
+      # 数据库
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # JWT（必须在 .env 中设置强密钥）
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-1h}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-7d}
+
+      # bcrypt
+      - BCRYPT_SALT_ROUNDS=${BCRYPT_SALT_ROUNDS:-12}
+
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+      # Twilio
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+
+      # 速率限制
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+
+      # CORS（填写前端域名，多个域名逗号分隔）
+      - CORS_ORIGIN=${CORS_ORIGIN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - auth-network
+    volumes:
+      - ./logs:/app/logs
+    # 资源限制：防止单个容器耗尽宿主机资源
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    # 安全：以非 root 用户运行（Dockerfile 已创建 nodejs 用户）
+    security_opt:
+      - no-new-privileges:true
+    read_only: false        # 需要写 logs 目录，不能全只读
+    tmpfs:
+      - /tmp:size=64m       # 临时文件挂载到内存，不写磁盘
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - |
+          require('http').get('http://localhost:3000/health', (r) =>
+            r.statusCode === 200 ? process.exit(0) : process.exit(1)
+          ).on('error', () => process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ----------------------------------------------------------
+  # PostgreSQL 数据库
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: auth-postgres
+    restart: unless-stopped
+    # 生产环境不对外暴露数据库端口，仅内部网络访问
+    # 如需临时访问，可注释掉下方 expose 并临时添加 ports
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      # 禁止信任本地连接，所有连接必须验证密码
+      - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - auth-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ----------------------------------------------------------
+  # Redis 缓存
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: auth-redis
+    restart: unless-stopped
+    expose:
+      - "6379"
+    # 启用持久化 + 密码认证（生产环境 REDIS_PASSWORD 必须在 .env 中设置）
+    command:
+      - redis-server
+      - --requirepass
+      - "${REDIS_PASSWORD}"
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - "everysec"
+      - --maxmemory
+      - "128mb"
+      - --maxmemory-policy
+      - "allkeys-lru"
+    volumes:
+      - redis-data:/data
+    networks:
+      - auth-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 192M
+        reservations:
+          memory: 64M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+# ─── 网络 ──────────────────────────────────────────────────────────────────────
+networks:
+  auth-network:
+    driver: bridge
+    # 自定义子网，避免与宿主机网络冲突
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ─── 数据卷 ────────────────────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local

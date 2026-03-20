@@ -1,0 +1,206 @@
+# ============================================================
+# docker-compose.yml  —  全栈生产部署配置（根目录）
+#
+# 包含四个服务：
+#   frontend   前端静态文件（Nginx）
+#   auth-api   后端 API（Node.js + Express）
+#   postgres   PostgreSQL 15 数据库
+#   redis      Redis 7 缓存
+#
+# 使用方式：
+#   1. 复制 auth-api/.env.production.example 为 auth-api/.env.production
+#      并填写所有 REQUIRED 字段
+#   2. docker compose up -d --build
+# ============================================================
+
+version: '3.8'
+
+services:
+
+  # ── 前端（Nginx + React 静态文件） ──────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: app-frontend:latest
+    container_name: app-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      auth-api:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── 后端 API ─────────────────────────────────────────────────
+  auth-api:
+    build:
+      context: ./auth-api
+      dockerfile: Dockerfile
+      target: production
+    image: auth-api:latest
+    container_name: auth-api
+    restart: unless-stopped
+    # 不对外暴露端口，只通过 Nginx 内部网络访问
+    expose:
+      - "3000"
+    env_file:
+      - ./auth-api/.env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - ./auth-api/logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=64m
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - |
+          require('http').get('http://localhost:3000/health', (r) =>
+            r.statusCode === 200 ? process.exit(0) : process.exit(1)
+          ).on('error', () => process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ── PostgreSQL ────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: auth-postgres
+    restart: unless-stopped
+    expose:
+      - "5432"
+    # 注意：postgres 镜像的 POSTGRES_* 变量必须在 environment 块中直接写死
+    # 或通过独立的 .env 文件传入，不能依赖 auth-api 的 env_file 展开。
+    # 这里直接硬写与 auth-api/.env.production 中一致的值。
+    # 部署前请将下面三个值改为与 auth-api/.env.production 一致的真实密码/用户名/库名。
+    environment:
+      - POSTGRES_DB=auth_database
+      - POSTGRES_USER=appuser
+      - POSTGRES_PASSWORD=CHANGE_ME_STRONG_DB_PASSWORD
+      - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./auth-api/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d auth_database"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Redis ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: auth-redis
+    restart: unless-stopped
+    expose:
+      - "6379"
+    # env_file 确保 REDIS_PASSWORD 从 .env.production 加载
+    env_file:
+      - ./auth-api/.env.production
+    # 部署前请将下面的密码替换为与 auth-api/.env.production 中
+    # REDIS_PASSWORD 完全一致的强密码。
+    # YAML sequence 中变量替换不会从 env_file 展开，必须直接写值。
+    command:
+      - redis-server
+      - --requirepass
+      - "CHANGE_ME_STRONG_REDIS_PASSWORD"
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - "everysec"
+      - --maxmemory
+      - "128mb"
+      - --maxmemory-policy
+      - "allkeys-lru"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 192M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      # REDIS_PASSWORD 在 healthcheck 执行环境中不会自动展开，
+      # 必须从 command 中已注入的密码读取，这里改用 --no-auth-warning 避免警告。
+      # 部署前请将下面的 CHANGE_ME_STRONG_REDIS_PASSWORD 替换为真实密码。
+      test: ["CMD", "redis-cli", "-a", "CHANGE_ME_STRONG_REDIS_PASSWORD", "--no-auth-warning", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+# ─── 网络 ──────────────────────────────────────────────────────
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# ─── 数据卷 ────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local

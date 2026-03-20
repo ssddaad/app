@@ -1,0 +1,532 @@
+// SymptomPage - 症状识别主页面
+import { useEffect, useState } from 'react';
+import { 
+  BookOpen, 
+  ArrowLeft, 
+  AlertTriangle,
+  CheckCircle2,
+  Activity,
+  Hand,
+  ChevronRight,
+  Stethoscope,
+  Calendar,
+  Info,
+  Heart,
+  Search,
+  Bell,
+  Sparkles,
+  Users
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+
+import { Link, Routes, Route } from 'react-router-dom';
+import SelfCheckPage from './SelfCheckPage';
+import UrgentSignsPage from './UrgentSignsPage';
+import { motion } from 'framer-motion';
+
+const earlySymptoms = [
+  { 
+    name: '乳房肿块',
+    desc: '无痛性、质地硬、边界不清的肿块，多为单发，活动度差',
+    urgent: false,
+    detail: '乳腺癌最常见的早期症状，通常在乳房外上象限出现。肿块质地较硬，表面不光滑，与周围组织分界不清，活动度差。大多数乳腺癌肿块无痛，这也是容易被忽视的原因。',
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=250&fit=crop'
+  },
+  { 
+    name: '乳头溢液',
+    desc: '非哺乳期出现血性或浆液性溢液，尤其是单侧单孔',
+    urgent: true,
+    detail: '非哺乳期出现乳头溢液，特别是血性、浆液血性或水样溢液，需要高度警惕，应及时就医检查。单侧单孔的溢液尤其需要重视。',
+    image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop'
+  },
+  { 
+    name: '皮肤改变',
+    desc: '皮肤凹陷、橘皮样改变或红肿，呈「酒窝征」或「橘皮征」',
+    urgent: true,
+    detail: '肿瘤侵犯Cooper韧带导致皮肤凹陷形成「酒窝征」；淋巴回流受阻导致皮肤增厚形成「橘皮征」。这些改变提示肿瘤可能已侵犯皮肤或淋巴系统。',
+    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=250&fit=crop'
+  },
+  { 
+    name: '乳头改变',
+    desc: '乳头内陷、偏斜或糜烂，乳头皮肤瘙痒、脱屑',
+    urgent: true,
+    detail: '肿瘤侵犯乳头下方组织可导致乳头内陷或偏斜；Paget病可表现为乳头乳晕区皮肤糜烂、脱屑。这些改变通常提示肿瘤位于乳头附近。',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=250&fit=crop'
+  },
+  { 
+    name: '腋窝肿块',
+    desc: '腋窝淋巴结肿大，质地硬，活动度差',
+    urgent: false,
+    detail: '乳腺癌细胞可通过淋巴管转移至腋窝淋巴结，导致腋窝淋巴结肿大，是乳腺癌转移的重要途径。腋窝肿块可能是乳腺癌的首发症状。',
+    image: 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=250&fit=crop'
+  },
+  { 
+    name: '乳房疼痛',
+    desc: '乳房持续性疼痛，不随月经周期变化',
+    urgent: false,
+    detail: '虽然大多数乳腺癌不痛，但部分患者可出现乳房隐痛、刺痛或牵拉感，且疼痛不随月经周期变化。与周期性乳房胀痛不同，需要引起重视。',
+    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&h=250&fit=crop'
+  },
+];
+
+const selfCheckSteps = [
+  { 
+    step: 1, 
+    title: '看', 
+    desc: '面对镜子，双手叉腰，观察乳房外形、皮肤、乳头是否有异常',
+    detail: '观察双侧乳房是否对称，皮肤有无凹陷、红肿，乳头有无内陷、偏斜或糜烂。注意乳房轮廓和皮肤纹理的变化。',
+    tips: ['在光线充足的地方进行', '观察乳房轮廓是否对称', '注意皮肤颜色变化', '观察乳头方向'],
+    icon: Search
+  },
+  { 
+    step: 2, 
+    title: '触', 
+    desc: '平躺，用手指指腹顺时针触摸乳房各象限，检查有无肿块',
+    detail: '用食指、中指、无名指的指腹平放在乳房上，以画圈的方式从外向内触摸，检查有无肿块。注意肿块的质地、大小和活动度。',
+    tips: ['使用指腹而非指尖', '按顺时针方向触摸', '包括腋下区域', '触摸力度适中'],
+    icon: Hand
+  },
+  { 
+    step: 3, 
+    title: '挤', 
+    desc: '轻轻挤压乳头，观察有无异常分泌物',
+    detail: '用拇指和食指轻轻挤压乳头，观察有无血性、浆液性或其他异常分泌物。注意分泌物的颜色、性状和出现的部位。',
+    tips: ['动作要轻柔', '观察分泌物颜色和性状', '注意是否单侧单孔', '不要过度挤压'],
+    icon: Activity
+  },
+  { 
+    step: 4, 
+    title: '查', 
+    desc: '检查腋窝是否有肿大淋巴结',
+    detail: '用手指触摸腋窝，检查有无肿大淋巴结，注意淋巴结的大小、质地、活动度。同时检查锁骨上下区域。',
+    tips: ['包括锁骨上下区域', '注意淋巴结质地', '发现异常及时就医', '两侧对比检查'],
+    icon: Stethoscope
+  },
+];
+
+const urgentSigns = [
+  { sign: '发现乳房无痛性肿块', level: '高危', desc: '质地硬、边界不清、活动度差的肿块' },
+  { sign: '乳头出现血性溢液', level: '高危', desc: '非哺乳期单侧单孔血性或浆液性溢液' },
+  { sign: '乳房皮肤出现橘皮样改变', level: '高危', desc: '皮肤增厚、毛孔明显，呈橘皮样外观' },
+  { sign: '乳头突然内陷或偏斜', level: '高危', desc: '乳头方向改变或向内凹陷' },
+  { sign: '腋窝淋巴结肿大', level: '中危', desc: '腋窝触及肿大、质硬的淋巴结' },
+  { sign: '乳房持续性疼痛不缓解', level: '中危', desc: '疼痛持续超过2周，不随月经周期变化' },
+  { sign: '乳头乳晕区皮肤糜烂脱屑', level: '高危', desc: '皮肤长期不愈的糜烂、结痂或脱屑' },
+  { sign: '乳房外形明显改变', level: '中危', desc: '双侧乳房明显不对称或局部隆起' },
+];
+
+const stats = [
+  { value: '90%', label: '早期发现治愈率', icon: Heart },
+  { value: '40岁', label: '建议开始筛查年龄', icon: Calendar },
+  { value: '每月', label: '建议自检频率', icon: CheckCircle2 },
+  { value: '8种', label: '需要警惕的症状', icon: AlertTriangle },
+];
+
+function SymptomMainPage() {
+  const [visibleSections, setVisibleSections] = useState<number[]>([]);
+
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const index = parseInt(e.target.getAttribute('data-index') || '0', 10);
+            setVisibleSections((prev) => [...new Set([...prev, index])]);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('[data-index]').forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+  const isVisible = (i: number) => visibleSections.includes(i);
+
+  return (
+    <div className="w-full px-4 md:px-12 lg:px-20 xl:px-24 py-10">
+      {/* 欢迎横幅 */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-[#20B2AA] via-[#3CB371] to-[#2E8B57] rounded-3xl p-8 mb-10 text-white relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <Sparkles className="w-6 h-6" />
+            <span className="text-white/90 font-medium">早发现 早治疗</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">识别早期症状，守护乳腺健康</h2>
+          <p className="text-white/90 text-lg max-w-2xl">
+            了解乳腺癌的早期症状，掌握正确的自检方法，是预防和早期发现乳腺癌的关键。
+            早期发现的乳腺癌，治愈率可达90%以上。
+          </p>
+        </div>
+      </motion.div>
+
+      {/* 统计数据 */}
+      <div data-index={0} className={`transition-all duration-700 ${isVisible(0) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {stats.map((stat, idx) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={idx} className="border-0 shadow-md hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <Icon className="w-8 h-8 text-[#3CB371] mx-auto mb-3" />
+                  <div className="text-2xl md:text-3xl font-bold text-gradient-pink mb-1">{stat.value}</div>
+                  <div className="text-sm text-[#666]">{stat.label}</div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 导航栏 */}
+      <div className="w-full mb-8 bg-white p-1 rounded-xl shadow-sm">
+        <div className="flex flex-wrap">
+          <Link to="/symptom" className="flex-1 md:flex-none">
+            <div className="flex items-center justify-center px-6 py-3 rounded-lg bg-gradient-symptom text-white font-medium">
+              <Activity className="w-4 h-4 mr-2" />
+              早期症状
+            </div>
+          </Link>
+          <Link to="/symptom/self-check" className="flex-1 md:flex-none">
+            <div className="flex items-center justify-center px-6 py-3 rounded-lg text-[#666] hover:bg-gray-100 font-medium transition-colors">
+              <Hand className="w-4 h-4 mr-2" />
+              自检方法
+            </div>
+          </Link>
+          <Link to="/symptom/urgent" className="flex-1 md:flex-none">
+            <div className="flex items-center justify-center px-6 py-3 rounded-lg text-[#666] hover:bg-gray-100 font-medium transition-colors">
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              就医时机
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* 早期症状 */}
+      <div data-index={1} className={`transition-all duration-700 ${isVisible(1) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <h2 className="text-2xl font-bold text-[#ff4d94] mb-2">早期预警信号</h2>
+        <p className="text-[#666] mb-6">了解乳腺癌的早期症状，有助于及时发现异常，尽早就医</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {earlySymptoms.map((symptom, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <Card className={`border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden ${symptom.urgent ? 'border-l-4 border-l-red-500' : ''}`}>
+                    <div className="h-40 overflow-hidden">
+                      <img 
+                        src={symptom.image} 
+                        alt={symptom.name}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-[#333] text-lg">{symptom.name}</h3>
+                        {symptom.urgent && (
+                          <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            需警惕
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-[#666] mb-3">{symptom.desc}</p>
+                      <p className="text-xs text-[#999]">{symptom.detail}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            <Alert className="mt-6 bg-amber-50 border-amber-200">
+              <Info className="w-5 h-5 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                <span className="font-semibold">重要提示：</span>
+                出现以上症状不一定就是乳腺癌，很多良性乳腺疾病也会有类似表现。但发现任何异常都应及时就医，由医生进行专业判断。
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+
+        {/* 自检方法 */}
+        <div>
+          <div data-index={2} className={`transition-all duration-700 ${isVisible(2) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <h2 className="text-2xl font-bold text-[#ff4d94] mb-2">乳房自检四步法</h2>
+            <p className="text-[#666] mb-6">掌握正确的自检方法，每月进行一次自我检查</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {selfCheckSteps.map((step, idx) => {
+                const Icon = step.icon;
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
+                    <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 h-full">
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-full bg-gradient-symptom flex items-center justify-center text-white font-bold text-xl shrink-0">
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-2xl font-bold text-[#ff4d94]">{step.step}</span>
+                              <h3 className="font-semibold text-[#333] text-lg">{step.title}</h3>
+                            </div>
+                            <p className="text-sm text-[#666] mb-2">{step.desc}</p>
+                            <p className="text-xs text-[#999] mb-3">{step.detail}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {step.tips.map((tip, i) => (
+                                <span key={i} className="px-2 py-1 bg-green-50 text-green-600 text-xs rounded-full flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  {tip}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <Card className="border-0 shadow-md">
+                <CardContent className="p-5 text-center">
+                  <Calendar className="w-8 h-8 text-[#3CB371] mx-auto mb-3" />
+                  <h4 className="font-semibold text-[#333] mb-2">最佳检查时间</h4>
+                  <p className="text-sm text-[#666]">月经结束后7-10天，此时乳房最柔软，容易发现异常</p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-md">
+                <CardContent className="p-5 text-center">
+                  <Bell className="w-8 h-8 text-[#3CB371] mx-auto mb-3" />
+                  <h4 className="font-semibold text-[#333] mb-2">检查频率</h4>
+                  <p className="text-sm text-[#666]">建议每月进行一次自检，养成固定习惯</p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-md">
+                <CardContent className="p-5 text-center">
+                  <Users className="w-8 h-8 text-[#3CB371] mx-auto mb-3" />
+                  <h4 className="font-semibold text-[#333] mb-2">绝经后女性</h4>
+                  <p className="text-sm text-[#666]">可选择每月固定日期进行检查，如每月1号</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Alert className="bg-amber-50 border-amber-200">
+              <Info className="w-5 h-5 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                <span className="font-semibold">自检小贴士：</span>
+                自检不能替代专业筛查，发现异常请及时就医。建议40岁以上女性每年进行一次专业的乳腺检查。
+              </AlertDescription>
+            </Alert>
+
+            {/* 跳转到完整子页 */}
+            <div className="mt-6">
+              <Link to="/symptom/self-check">
+                <Button className="bg-gradient-symptom text-white">查看完整自检指南</Button>
+              </Link>
+            </div>
+          </div>
+
+        {/* 就医时机 */}
+        <div>
+          <div data-index={3} className={`transition-all duration-700 ${isVisible(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <h2 className="text-2xl font-bold text-[#ff4d94] mb-2">何时需要立即就医？</h2>
+            <p className="text-[#666] mb-6">了解需要警惕的症状，及时寻求专业帮助</p>
+            
+            <div className="grid grid-cols-1 gap-3 mb-8">
+              {urgentSigns.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className={`flex items-start gap-4 p-4 rounded-xl ${
+                    item.level === '高危' ? 'bg-red-50 border border-red-100' : 'bg-amber-50 border border-amber-100'
+                  }`}
+                >
+                  <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${item.level === '高危' ? 'text-red-500' : 'text-amber-500'}`} />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-[#333]">{item.sign}</span>
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${
+                        item.level === '高危' ? 'bg-red-500 text-white' : 'bg-amber-500 text-white'
+                      }`}>
+                        {item.level}
+                      </span>
+                    </div>
+                    <p className="text-sm text-[#666]">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="bg-gradient-to-r from-[#ff4d94] to-[#ff6b9d] rounded-2xl p-6 text-white mb-8">
+              <div className="flex items-start gap-4">
+                <Info className="w-6 h-6 shrink-0 mt-1" />
+                <div>
+                  <h4 className="font-bold text-lg mb-2">重要提醒</h4>
+                  <p className="text-white/90 leading-relaxed">
+                    早期发现是提高治愈率的关键！发现以上任何症状请立即就医，不要拖延。
+                    早期乳腺癌的五年生存率可达90%以上。即使症状不明显，也建议40岁以上女性每年进行一次乳腺筛查。
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card className="border-0 shadow-md text-center p-4">
+                <Calendar className="w-8 h-8 text-[#3CB371] mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gradient-pink">每月</div>
+                <div className="text-sm text-[#666]">建议自检频率</div>
+              </Card>
+              <Card className="border-0 shadow-md text-center p-4">
+                <Stethoscope className="w-8 h-8 text-[#3CB371] mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gradient-pink">40岁</div>
+                <div className="text-sm text-[#666]">建议开始筛查年龄</div>
+              </Card>
+              <Card className="border-0 shadow-md text-center p-4">
+                <CheckCircle2 className="w-8 h-8 text-[#3CB371] mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gradient-pink">90%</div>
+                <div className="text-sm text-[#666]">早期发现治愈率</div>
+              </Card>
+            </div>
+
+            {/* 跳转到完整子页 */}
+            <div className="mt-6">
+              <Link to="/symptom/urgent">
+                <Button className="bg-gradient-symptom text-white">查看就医时机详情</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 快速导航卡片 */}
+      <div className="mt-12">
+        <h3 className="text-lg font-semibold text-[#333] mb-4">快速导航</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link to="/symptom/self-check">
+            <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-[#ff4d94] to-[#ff6b9d]">
+                    <Hand className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[#333]">完整自检指南</h4>
+                    <p className="text-sm text-[#666]">学习详细的乳房自检方法</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#999] group-hover:text-[#ff4d94] group-hover:translate-x-1 transition-all" />
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/symptom/urgent">
+            <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-red-400 to-red-500">
+                    <AlertTriangle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[#333]">就医时机详情</h4>
+                    <p className="text-sm text-[#666]">了解需要立即就医的情况</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#999] group-hover:text-[#ff4d94] group-hover:translate-x-1 transition-all" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+      </div>
+
+      {/* 页面底部导航 */}
+      <div className="mt-10">
+        <h3 className="text-lg font-semibold text-[#333] mb-4">继续了解</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link to="/prevention">
+            <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-[#228B22] to-[#3CB371]">
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[#333]">防治指南</h4>
+                    <p className="text-sm text-[#666]">学习预防和治疗方法</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#999] group-hover:text-[#ff4d94] group-hover:translate-x-1 transition-all" />
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to="/prevention/screening">
+            <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-500">
+                    <Calendar className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[#333]">筛查指南</h4>
+                    <p className="text-sm text-[#666]">了解各年龄段筛查建议</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#999] group-hover:text-[#ff4d94] group-hover:translate-x-1 transition-all" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SymptomPage() {
+  return (
+    <div className="min-h-screen bg-[#fafafa]">
+      <div className="bg-gradient-to-r from-[#20B2AA] via-[#3CB371] to-[#2E8B57] text-white">
+        <div className="w-full px-4 md:px-12 lg:px-20 xl:px-24 py-8">
+          <Link to="/">
+            <Button variant="ghost" className="text-white hover:bg-white/20 mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              返回首页
+            </Button>
+          </Link>
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+              <BookOpen className="w-10 h-10" />
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold">乳腺癌症状识别</h1>
+              <p className="text-white/80 mt-1">识别早期症状，做到早发现早治疗</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Routes>
+        <Route index element={<SymptomMainPage />} />
+        <Route path="self-check" element={<SelfCheckPage />} />
+        <Route path="urgent" element={<UrgentSignsPage />} />
+      </Routes>
+    </div>
+  );
+}

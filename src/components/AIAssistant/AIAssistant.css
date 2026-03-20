@@ -1,0 +1,149 @@
+/* AI Assistant Styles - 小医生版本 */
+
+.ai-assistant-container {
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: transform 0.1s ease;
+}
+
+.ai-assistant-container.dragging {
+  cursor: grabbing;
+  z-index: 1000;
+}
+
+.ai-assistant-container.pressed .ai-assistant-img {
+  transform: scale(0.95);
+}
+
+.ai-assistant-container.dragging .ai-assistant-img {
+  transform: scale(1.05);
+  filter: drop-shadow(0 8px 24px rgba(255, 77, 148, 0.4));
+}
+
+.ai-tooltip {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff4d94 100%);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(255, 77, 148, 0.3);
+  animation: tooltipFadeIn 0.3s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.ai-drag-tooltip {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  animation: tooltipFadeIn 0.2s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-assistant-btn {
+  position: relative;
+  width: 100px;
+  height: 160px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: block;
+}
+
+.ai-assistant-btn:hover .ai-assistant-img {
+  transform: scale(1.08);
+  filter: drop-shadow(0 8px 24px rgba(255, 77, 148, 0.35));
+}
+
+.ai-assistant-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+}
+
+/* 脉冲动画环 - 围绕图片 */
+.ai-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 90%;
+  border-radius: 20px;
+  border: 2px solid #ff4d94;
+  animation: pulseRing 2s ease-out infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ai-pulse-ring.delay {
+  animation-delay: 1s;
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0;
+  }
+}
+
+/* 摇晃动画 - 可爱效果 */
+@keyframes gentleBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.ai-assistant-container:not(.dragging):not(.pressed) .ai-assistant-img {
+  animation: gentleBounce 2s ease-in-out infinite;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .ai-assistant-btn {
+    width: 80px;
+    height: 128px;
+  }
+  
+  .ai-tooltip {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}

@@ -1,0 +1,136 @@
+# ============================================
+# 开发环境 Docker Compose 配置
+# 
+# 使用卷挂载源代码，支持热重载
+# ============================================
+
+version: '3.8'
+
+services:
+  # ----------------------------------------
+  # 开发模式应用服务
+  # ----------------------------------------
+  auth-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: auth-api-dev
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT:-3000}
+      - DATABASE_URL=postgresql://${DB_USER:-user}:${DB_PASSWORD:-password}@postgres-dev:5432/${DB_NAME:-auth_database}
+      - DB_HOST=postgres-dev
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-auth_database}
+      - DB_USER=${DB_USER:-user}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-1h}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-dev-refresh-secret}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-7d}
+      - BCRYPT_SALT_ROUNDS=${BCRYPT_SALT_ROUNDS:-12}
+      - REDIS_HOST=redis-dev
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - DB_SYNC_FORCE=${DB_SYNC_FORCE:-false}
+    depends_on:
+      - postgres-dev
+      - redis-dev
+    networks:
+      - auth-network-dev
+    volumes:
+      # 挂载源代码，支持热重载
+      - ./src:/app/src
+      - ./logs:/app/logs
+      # 排除 node_modules
+      - /app/node_modules
+    command: npm run dev
+
+  # ----------------------------------------
+  # 开发环境 PostgreSQL
+  # ----------------------------------------
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: auth-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=${DB_NAME:-auth_database}
+      - POSTGRES_USER=${DB_USER:-user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    networks:
+      - auth-network-dev
+
+  # ----------------------------------------
+  # 开发环境 Redis
+  # ----------------------------------------
+  redis-dev:
+    image: redis:7-alpine
+    container_name: auth-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data-dev:/data
+    networks:
+      - auth-network-dev
+
+  # ----------------------------------------
+  # pgAdmin - PostgreSQL 管理工具（可选）
+  # ----------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: auth-pgadmin
+    restart: unless-stopped
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@example.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - auth-network-dev
+    depends_on:
+      - postgres-dev
+
+  # ----------------------------------------
+  # Redis Commander - Redis 管理工具（可选）
+  # ----------------------------------------
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: auth-redis-commander
+    restart: unless-stopped
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    environment:
+      - REDIS_HOSTS=local:redis-dev:6379
+    networks:
+      - auth-network-dev
+    depends_on:
+      - redis-dev
+
+networks:
+  auth-network-dev:
+    driver: bridge
+
+volumes:
+  postgres-data-dev:
+    driver: local
+  redis-data-dev:
+    driver: local
+  pgadmin-data:
+    driver: local

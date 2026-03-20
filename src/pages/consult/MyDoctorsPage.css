@@ -1,0 +1,659 @@
+/* My Doctors Page Styles - 透视图优化版 */
+
+.mydoctors-page {
+  min-height: calc(100vh - 80px);
+  padding-bottom: 48px;
+}
+
+/* 页面标题 */
+.page-header-section {
+  text-align: center;
+  padding: 40px 32px 20px;
+}
+
+.page-header-section .page-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.page-header-section .page-subtitle {
+  font-size: 15px;
+  color: #888;
+}
+
+.mydoctors-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* 搜索栏 */
+.search-section {
+  margin-bottom: 28px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  max-width: 400px;
+}
+
+.search-box svg {
+  color: #999;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+}
+
+/* 主体内容 */
+
+
+/* 医生列表 */
+.doctors-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}
+
+.section-count {
+  font-size: 13px;
+  color: #888;
+}
+
+.doctors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.doctor-card-enhanced {
+  padding: 28px;
+  background: #fafafa;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.doctor-card-enhanced:hover {
+  background: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.doctor-card-header {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.doctor-avatar-enhanced {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.doctor-card-enhanced:hover .doctor-avatar-enhanced {
+  transform: scale(1.1);
+}
+
+.doctor-avatar-enhanced.online::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  background: #10b981;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+.doctor-header-info {
+  flex: 1;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.doctor-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #333;
+}
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.doctor-title {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.body-part-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.doctor-card-body {
+  margin-bottom: 18px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.info-row svg {
+  color: #999;
+}
+
+.specialty {
+  font-size: 14px;
+  color: #555;
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
+.doctor-card-footer {
+  display: flex;
+  gap: 12px;
+}
+
+.consult-btn-sm,
+.appointment-btn-sm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.consult-btn-sm {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff4d94 100%);
+  color: white;
+}
+
+.consult-btn-sm:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 107, 157, 0.35);
+}
+
+.appointment-btn-sm:hover {
+  background: rgba(255, 77, 148, 0.05);
+  color: #ff4d94;
+  transform: scale(1.05);
+}
+
+/* 人体透视图区域 */
+.body-map-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px;
+}
+
+.body-map-card {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.body-map-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.body-map-title svg {
+  color: #ff4d94;
+}
+
+/* 增强版人体透视图 */
+.body-visual-enhanced {
+  position: relative;
+  height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.body-visual-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 40%, rgba(255, 107, 157, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 70% 40%, rgba(64, 224, 208, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.body-svg-enhanced {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+}
+
+.body-part-organ {
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.body-part-organ:hover {
+  filter: brightness(1.1);
+}
+
+/* 部位标签 */
+.body-labels-enhanced {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.body-label-enhanced {
+  position: absolute;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  transform: translate(-50%, -50%);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.body-label-enhanced.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* 增强版图例 */
+.body-map-legend-enhanced {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.legend-item-enhanced {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 -4px;
+}
+
+.legend-item-enhanced:hover,
+.legend-item-enhanced.active {
+  background: #f8f9fa;
+}
+
+.legend-item-enhanced.active {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe8ee 100%);
+}
+
+.legend-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.legend-name {
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+.legend-doctor {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 增强版健康提示卡片 */
+.health-tips-card-enhanced {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.health-tips-card-enhanced .tips-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 10px;
+}
+
+.health-tips-card-enhanced p {
+  font-size: 13px;
+  color: #047857;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* 添加更多 */
+.add-more-section {
+  text-align: center;
+  padding: 32px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.add-more-section p {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.browse-btn {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff4d94 100%);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.browse-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(255, 107, 157, 0.35);
+}
+
+/* 医生详情弹窗 */
+.doctor-detail-dialog {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.detail-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.detail-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: white;
+  font-size: 36px;
+  font-weight: 600;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.detail-avatar.online::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  background: #10b981;
+  border: 3px solid white;
+  border-radius: 50%;
+}
+
+.detail-header {
+  margin-bottom: 12px;
+}
+
+.detail-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.detail-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+}
+
+.detail-title {
+  font-size: 14px;
+  color: #888;
+}
+
+.detail-online-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #10b981;
+  color: white;
+}
+
+.detail-body-part {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.detail-hospital {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.detail-specialty {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.detail-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.detail-stat {
+  text-align: center;
+}
+
+.detail-stat .stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ff4d94;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.detail-stat .stat-label {
+  font-size: 12px;
+  color: #888;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.detail-actions .action-btn-wide {
+  flex: 1;
+}
+
+.detail-actions button {
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.detail-actions button:hover {
+  transform: scale(1.05);
+}
+
+.consult-btn-wide {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ff4d94 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.appointment-btn-wide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .body-map-section {
+    position: static;
+    order: -1;
+  }
+  
+  .body-visual-enhanced {
+    height: 360px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mydoctors-container {
+    padding: 0 16px;
+  }
+  
+  .page-header-section {
+    padding: 24px 16px 16px;
+  }
+  
+  .search-box {
+    max-width: 100%;
+  }
+  
+  .body-visual-enhanced {
+    height: 320px;
+  }
+  
+  .doctor-card-header {
+    flex-wrap: wrap;
+  }
+  
+  .doctor-card-footer {
+    flex-wrap: wrap;
+  }
+  
+  .detail-actions {
+    flex-direction: column;
+  }
+}
