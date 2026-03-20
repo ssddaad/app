@@ -39,8 +39,11 @@ const PageLoader: React.FC = () => (
 );
 
 const App: React.FC = () => {
+  // GitHub Pages 部署时使用 /app/ 作为 basename
+  const basename = import.meta.env.GITHUB_PAGES ? '/app' : '/';
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/"             element={<HomePage />} />

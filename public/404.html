@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>页面重定向</title>
+  <script>
+    // GitHub Pages 404 重定向脚本
+    // 用于支持 React Router 的客户端路由
+    (function() {
+      const path = decodeURI(window.location.pathname);
+      // 如果路径不是根路径且不包含文件扩展名，重定向到首页
+      if (path !== '/' && !path.match(/\.\w+$/)) {
+        // 保存原始路径到 sessionStorage
+        sessionStorage.redirect = path;
+        // 重定向到首页
+        window.location.href = '/app/';
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>页面重定向中...</p>
+</body>
+</html>
