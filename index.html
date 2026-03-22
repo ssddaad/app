@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- ✅ 防缓存：禁止浏览器/代理缓存 HTML 入口文件 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>乳此安心</title>
+    <script>
+      // ✅ BUILD_ID 暴露（便于排障：打开控制台即可确认当前版本）
+      window.__BUILD_ID__ = '__BUILD_ID_PLACEHOLDER__';
+      window.__BUILD_TIME__ = '__BUILD_TIME_PLACEHOLDER__';
+      console.info('[版本]', window.__BUILD_ID__, window.__BUILD_TIME__);
+    </script>
     <script>
       // GitHub Pages SPA 路由恢复脚本
       // 配合 404.html 中的重定向脚本使用

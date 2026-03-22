@@ -36,6 +36,46 @@ jobs:
         env:
           GITHUB_PAGES: 'true'
 
+      # ✅ 将 BUILD_ID / BUILD_TIME 注入到构建产物的 index.html（用于线上排障）
+      - name: Inject BUILD_ID into dist/index.html
+        run: |
+          BUILD_ID="${{ github.sha }}"
+          BUILD_TIME="${{ github.event.head_commit.timestamp }}"
+          sed -i "s|__BUILD_ID_PLACEHOLDER__|${BUILD_ID}|g" dist/index.html
+          sed -i "s|__BUILD_TIME_PLACEHOLDER__|${BUILD_TIME}|g" dist/index.html
+          echo "✅ BUILD_ID 注入完成: ${BUILD_ID} / ${BUILD_TIME}"
+
+      # ✅ 引用完整性检查：确保 index.html 引用的 JS/CSS 文件都已存在于 dist
+      # 任何一个文件缺失都直接 fail，阻止发布错配产物
+      - name: Verify dist integrity
+        run: |
+          echo "=== 检查 dist/index.html 引用的资源文件完整性 ==="
+          HTML_FILE="dist/index.html"
+          MISSING=0
+
+          # 提取所有 src="..." 和 href="..." 引用的本地资源路径
+          REFS=$(grep -oP '(?<=(src|href)=")[^"]+(?=")' "$HTML_FILE" | grep -v '^http' | grep -v '^//' || true)
+
+          for REF in $REFS; do
+            # 去掉 base path（/app/）前缀后拼 dist/
+            CLEAN=$(echo "$REF" | sed 's|^/app/||' | sed 's|^/||')
+            if [ -n "$CLEAN" ] && [ ! -f "dist/$CLEAN" ]; then
+              echo "❌ 缺失: dist/$CLEAN  (引用自 $REF)"
+              MISSING=1
+            else
+              echo "✅ 存在: dist/$CLEAN"
+            fi
+          done
+
+          if [ "$MISSING" -eq 1 ]; then
+            echo ""
+            echo "🚨 dist 引用完整性检查失败！存在 HTML 引用但文件不存在的资源，禁止发布。"
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ dist 引用完整性检查通过，所有资源文件均存在。"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
