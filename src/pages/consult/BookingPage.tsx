@@ -16,17 +16,17 @@ import {
 const allTags = ['全部', '经验丰富', '耐心细致', '专业认证', '好评如潮', '资深专家'];
 
 const teamMembers = [
-  { name: '陈医生', city: '北京', rating: 5.0, services: '680+', image: 'app/public/doctor-new-1.jpg', tags: ['经验丰富', '资深专家', '好评如潮'], description: '从事陪诊行业15年，拥有丰富的医疗行业经验和深厚的人文关怀精神' },
-  { name: '刘医生', city: '上海', rating: 4.9, services: '520+', image: 'app/public/doctor-new-2.jpg', tags: ['耐心细致', '专业认证', '好评如潮'], description: '用真诚和耐心服务好每一位客户，帮助客户缓解精神压力' },
-  { name: '赵医生', city: '广州', rating: 5.0, services: '480+', image: 'app/public/doctor-new-3.jpg', tags: ['经验丰富', '专业认证'], description: '工作细致周到，有陪诊师证书和心理咨询师证书' },
-  { name: '孙医生', city: '深圳', rating: 4.9, services: '420+', image: 'app/public/doctor-new-4.jpg', tags: ['耐心细致', '资深专家'], description: '医院工作五年，熟悉各项医保报销、交费流程，期待与您的合作' },
+  { name: '陈医生', city: '北京', rating: 5.0, services: '680+', image: 'app/dist/doctor-new-1.jpg', tags: ['经验丰富', '资深专家', '好评如潮'], description: '从事陪诊行业15年，拥有丰富的医疗行业经验和深厚的人文关怀精神' },
+  { name: '刘医生', city: '上海', rating: 4.9, services: '520+', image: 'app/dist/doctor-new-2.jpg', tags: ['耐心细致', '专业认证', '好评如潮'], description: '用真诚和耐心服务好每一位客户，帮助客户缓解精神压力' },
+  { name: '赵医生', city: '广州', rating: 5.0, services: '480+', image: 'app/dist/doctor-new-3.jpg', tags: ['经验丰富', '专业认证'], description: '工作细致周到，有陪诊师证书和心理咨询师证书' },
+  { name: '孙医生', city: '深圳', rating: 4.9, services: '420+', image: 'app/dist/doctor-new-4.jpg', tags: ['耐心细致', '资深专家'], description: '医院工作五年，熟悉各项医保报销、交费流程，期待与您的合作' },
 ];
 
 const processSteps = [
-  { number: '1', title: '在线预约', description: '通过官网或APP选择服务类型、时间、医院及陪诊师，提交预约申请', image: 'app/public/process-bg-1.jpg' },
-  { number: '2', title: '需求确认', description: '客服人员与您联系，确认就诊信息、特殊需求及注意事项，匹配合适的陪诊师', image: 'app/public/process-bg-2.jpg' },
-  { number: '3', title: '陪诊服务', description: '陪诊师提前到达约定地点，全程陪同就医，协助完成各项检查，记录医嘱', image: 'app/public/process-bg-3.jpg' },
-  { number: '4', title: '服务反馈', description: '服务结束后，陪诊师上传就诊总结，您可对服务进行评价，提出建议', image: 'app/public/process-bg-4.jpg' },
+  { number: '1', title: '在线预约', description: '通过官网或APP选择服务类型、时间、医院及陪诊师，提交预约申请', image: 'app/dist/process-bg-1.jpg' },
+  { number: '2', title: '需求确认', description: '客服人员与您联系，确认就诊信息、特殊需求及注意事项，匹配合适的陪诊师', image: 'app/dist/process-bg-2.jpg' },
+  { number: '3', title: '陪诊服务', description: '陪诊师提前到达约定地点，全程陪同就医，协助完成各项检查，记录医嘱', image: 'app/dist/process-bg-3.jpg' },
+  { number: '4', title: '服务反馈', description: '服务结束后，陪诊师上传就诊总结，您可对服务进行评价，提出建议', image: 'app/dist/process-bg-4.jpg' },
 ];
 
 const services = [
@@ -90,7 +90,7 @@ const BookingPage: React.FC = () => {
 
       <section className="relative w-full min-h-[600px] lg:min-h-[700px] overflow-hidden -mt-px">
         <div className="absolute inset-0">
-          <img src="app/public/hero-bg.png" alt="专业陪诊服务" className="w-full h-full object-cover object-center" />
+          <img src="app/dist/hero-bg.png" alt="专业陪诊服务" className="w-full h-full object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-r from-pink-50/95 via-pink-50/70 to-transparent" />
         </div>
 
