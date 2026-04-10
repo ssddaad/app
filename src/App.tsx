@@ -18,6 +18,7 @@ const FAQPage           = lazy(() => import('./pages/consult/FAQPage'));
 const EmergencyPage     = lazy(() => import('./pages/consult/EmergencyPage'));
 const AIPage            = lazy(() => import('./pages/consult/AIPage'));
 const DoctorConsultPage = lazy(() => import('./pages/consult/DoctorConsultPage'));
+const BookingPage       = lazy(() => import('./pages/consult/BookingPage'));
 const PaymentPageWrapper = lazy(() =>
   import('./pages/Shop/PaymentPageWrapper').then((m) => ({ default: m.PaymentPageWrapper }))
 );
@@ -62,6 +63,7 @@ const App: React.FC = () => {
           <Route path="/emergency"    element={<EmergencyPage />} />
           <Route path="/ai"           element={<AIPage />} />
           <Route path="/doctor-consult" element={<DoctorConsultPage />} />
+          <Route path="/booking"      element={<BookingPage />} />
           <Route path="/payment"      element={<PaymentPageWrapper />} />
         </Routes>
       </Suspense>

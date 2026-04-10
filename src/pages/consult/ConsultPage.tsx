@@ -110,6 +110,7 @@ interface ServiceItem {
 // Service List with links
 const SERVICE_LIST: ServiceItem[] = [
     { icon: Calendar, name: '预约挂号', desc: '快速预约专家号', path: '/appointment', color: 'appointment' },
+    { icon: Calendar, name: '预约陪诊', desc: '预约专业陪诊服务', path: '/booking', color: 'appointment' },
     { icon: FileText, name: '检查报告', desc: '查看您的检查报告', path: '/reports', color: 'record' },
     { icon: Stethoscope, name: '我的医生', desc: '管理您的医生团队', path: '/doctors', color: 'consult' },
 ];
@@ -318,6 +319,10 @@ const ConsultPage: React.FC = () => {
                                     <Link to="/appointment" className="sidebar-nav-item">
                                         <div className="sidebar-nav-icon"><Calendar size={14} /></div>
                                         <span className='text-[16px]'>预约挂号</span>
+                                    </Link>
+                                    <Link to="/booking" className="sidebar-nav-item">
+                                        <div className="sidebar-nav-icon"><Calendar size={14} /></div>
+                                        <span className='text-[16px]'>预约陪诊</span>
                                     </Link>
                                     <Link to="/reports" className="sidebar-nav-item">
                                         <div className="sidebar-nav-icon"><FileText size={14} /></div>

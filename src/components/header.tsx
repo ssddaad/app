@@ -198,7 +198,7 @@ const MainNav: React.FC = () => {
   );
 };
 
-const Header: React.FC<{ onSearch: (term: string) => void }> = ({ onSearch }) => {
+const Header: React.FC<{ onSearch: (term: string) => void; hideSearch?: boolean }> = ({ onSearch, hideSearch = false }) => {
   const handleSearch = () => {
     const input = document.querySelector('.search-input') as HTMLInputElement;
     if (input?.value) onSearch(input.value);
@@ -218,17 +218,19 @@ const Header: React.FC<{ onSearch: (term: string) => void }> = ({ onSearch }) =>
           <div className="nav-main-bar"><MainNav /></div>
         </div>
       </div>
-      <div className="search-section">
-        <div className="search-bar">
-          <Input
-            className="search-input"
-            placeholder="搜索健康资讯..."
-            prefix={<SearchOutlined />}
-            onPressEnter={handleKeyPress}
-          />
-          <Button type="primary" onClick={handleSearch}>搜索</Button>
+      {!hideSearch && (
+        <div className="search-section">
+          <div className="search-bar">
+            <Input
+              className="search-input"
+              placeholder="搜索健康资讯..."
+              prefix={<SearchOutlined />}
+              onPressEnter={handleKeyPress}
+            />
+            <Button type="primary" onClick={handleSearch}>搜索</Button>
+          </div>
         </div>
-      </div>
+      )}
     </header>
   );
 };

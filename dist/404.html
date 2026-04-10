@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ✅ 防缓存：404 跳转页同样禁止缓存，避免旧壳被缓存后永远重定向错误路径 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>乳此安心</title>
+  <script>
+    // GitHub Pages SPA 路由支持
+    // 将完整路径保存到 sessionStorage，然后重定向到根路径
+    // 参考：https://github.com/rafgraph/spa-github-pages
+    (function() {
+      var l = window.location;
+      // /app 是仓库名，pathSegmentsToKeep=1 保留仓库路径前缀
+      var segmentsToKeep = 1;
+      sessionStorage.redirect = l.pathname.slice(
+        l.pathname.split('/').slice(0, 1 + segmentsToKeep).join('/').length
+      );
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentsToKeep).join('/') + '/?p=1'
+      );
+    })();
+  </script>
+</head>
+<body>
+  <p>页面重定向中...</p>
+</body>
+</html>
