@@ -1,4 +1,6 @@
-// src/services/api.ts - AI助手API服务
+// ==================== 修改后的前端代码 ====================
+// 文件名: src/services/api.ts
+// 修改说明: 只需要修改 API_URL 和对应的方法，其他逻辑保持不变
 
 const uid = (p = 'id') => `${p}-${Math.random().toString(36).slice(2, 10)}`;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -20,22 +22,25 @@ export interface Suggestion {
   text: string;
 }
 
-// API配置（从环境变量读取，避免 Key 泄漏到 Git 和打包产物）
+// ==================== 关键修改点 ====================
+// 把原来直接调用硅基流动的地址，换成你的 Cloudflare Worker 地址
+// 部署 Worker 后，把下面的地址改成你的 Worker URL
+const WORKER_URL = 'https://breast.3544570467.workers.dev'; // ← 修改这里！
+
+// API Key 仍然从环境变量读取，但不再直接暴露给硅基流动
 const API_KEY = import.meta.env.VITE_SILICONFLOW_API_KEY as string;
-const API_URL = "https://api.siliconflow.cn/v1/chat/completions";
+
+// 模型配置
 const MODEL = (import.meta.env.VITE_SILICONFLOW_MODEL as string) ||
   "ft:LoRA/Qwen/Qwen2.5-7B-Instruct:d5rp7rmcnncc738k5sq0:breastcancer:oclicfelnbkxecoruzqr-ckpt_step_231";
 
 // 内容格式化函数：替换*为空格，清理思考过程
 const formatContent = (content: string): string => {
   return content
-    // 移除常见的思考过程标记
     .replace(/<think>[\s\S]*?<\/think>/g, '')
     .replace(/【思考】[\s\S]*?【\/思考】/g, '')
-    // 将 Markdown 列表符号 * 和 - 替换为两个空格
     .replace(/^\s*\*\s*/gm, '  ')
     .replace(/^\s*-\s*/gm, '  ')
-    // 清理多余空行
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 };
@@ -84,7 +89,9 @@ export const api = {
         { role: 'user', content: userMsg.content },
       ];
 
-      const response = await fetch(API_URL, {
+      // ==================== 关键修改点 ====================
+      // 改为调用 Worker 的 /api/chat 端点，而不是直接调用硅基流动
+      const response = await fetch(`${WORKER_URL}/api/chat`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${API_KEY}`,
@@ -114,7 +121,7 @@ export const api = {
 
       // 分割成chunks用于流式显示
       const chunks: string[] = [];
-      const chunkSize = 8; // 每个chunk的字符数
+      const chunkSize = 8;
       for (let i = 0; i < assistantContent.length; i += chunkSize) {
         chunks.push(assistantContent.slice(i, i + chunkSize));
       }
@@ -175,7 +182,9 @@ export const api = {
         { role: 'user', content: userMsg.content },
       ];
 
-      const response = await fetch(API_URL, {
+      // ==================== 关键修改点 ====================
+      // 改为调用 Worker 的 /api/chat 端点，并启用流式
+      const response = await fetch(`${WORKER_URL}/api/chat`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${API_KEY}`,
@@ -186,7 +195,7 @@ export const api = {
           messages: messages,
           max_tokens: 1000,
           temperature: 0.7,
-          stream: true,
+          stream: true, // 启用流式
         }),
       });
 
@@ -202,7 +211,6 @@ export const api = {
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
       let fullContent = '';
-      // 用于检测是否在 <think>...</think> 块内，流式过程中过滤掉思考内容
       let inThinkBlock = false;
 
       while (true) {
@@ -225,7 +233,7 @@ export const api = {
               if (content) {
                 fullContent += content;
 
-                // 流式过滤：跳过 <think>...</think> 块内容，不推送到界面
+                // 流式过滤：跳过 <think>...<think> 块内容
                 let visible = content;
                 if (inThinkBlock) {
                   const endIdx = visible.indexOf('</think>');
@@ -297,30 +305,22 @@ export const api = {
   },
 
   /**
-   * 检查API连接状态
+   * 检查API连接状态（修改为检查 Worker）
    */
   async checkHealth(): Promise<{ ok: boolean; message: string }> {
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [{ role: 'user', content: '你好' }],
-          max_tokens: 5,
-        }),
-      });
-
+      // ==================== 关键修改点 ====================
+      // 改为检查 Worker 的健康端点
+      const response = await fetch(`${WORKER_URL}/health`);
+      
       if (response.ok) {
-        return { ok: true, message: 'API连接正常' };
+        const data = await response.json();
+        return { ok: true, message: `Worker 正常: ${data.message}` };
       } else {
-        return { ok: false, message: `API错误: ${response.status}` };
+        return { ok: false, message: `Worker 错误: ${response.status}` };
       }
     } catch (error) {
-      return { ok: false, message: '无法连接到API服务器' };
+      return { ok: false, message: '无法连接到 Worker 服务器' };
     }
   },
 };
